@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: url('image.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-bar {
+            width: 100%;
+            background: #0a192f;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .header-bar img {
+            width: 40px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .header-bar strong {
+            font-size: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            background: rgba(245, 246, 234, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            margin: 80px auto 20px;
+        }
+
+        h1 { color: #222; }
+
+        .choices-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .choice-container {
+            padding: 10px;
+            border: 2px solid #0b6623;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .choice-container:hover { background-color: #e6f4ea; }
+        .correct { background-color: #38fd6d; color: white; }
+        .wrong { background-color: red; color: white; }
+
+        button {
+            background-color: #0a192f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid #007bff;
+        }
+
+        .tab-content {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .leaderboard-item {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .leaderboard-item:nth-child(1) { background: #ffd700; }
+        .leaderboard-item:nth-child(2) { background: #c0c0c0; }
+        .leaderboard-item:nth-child(3) { background: #cd7f32; }
+
+        #timer {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #0a192f, #1a2a44);
+            color: #ffffff;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #timer::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            background: conic-gradient(#38fd6d var(--progress, 0%), transparent 0%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 0;
+            opacity: 0.2;
+            transition: opacity 0.3s ease;
+        }
+
+        #timer span {
+            position: relative;
+            z-index: 1;
+        }
+
+        #timer:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+
+        #timer.low-time {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, #ff3333, #cc0000);
+        }
+
+        .score-summary {
+            margin-top: 20px;
+            font-size: 18px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-summary p {
+            margin: 5px 0;
+        }
+
+        .play-again-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .play-again-button:hover {
+            background-color: #0056b3;
+        }
+
+        .login-prompt {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .login-prompt a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-prompt a:hover {
+            text-decoration: underline;
+        }
+
+        .answers-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .answers-section h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .answers-section p {
+            font-size: 16px;
+            color: #555;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <img src="button.png" alt="Menu" onclick="toggleMenu()">
+        <strong>Games & Quizzes</strong>
+    </div>
+
+    <div class="container">
+        <h1>Welcome to the Quiz!</h1>
+        <p id="question-text">Loading question...</p>
+        <div id="timer"><span>Time left: 10</span></div>
+        <div class="choices-container" id="choices"></div>
+        <button id="next-btn" onclick="nextQuestion()">Next Question</button>
+        <button id="restart-btn" class="play-again-button" onclick="restartQuiz()">Play Again</button>
+
+        <div class="tabs" id="tabs" style="display: none;">
+            <div class="tab active" onclick="showTab('score')">Score</div>
+            <div class="tab" onclick="showTab('leaderboard')">Leaderboard</div>
+            <div class="tab" onclick="showTab('answers')">Answers</div>
+        </div>
+
+        <div id="score-tab" class="tab-content">
+            <div class="score-summary">
+                <p id="correct-answers">0 Correct</p>
+                <p id="points-earned">0 Points</p>
+                <p id="time-bonus">Time Bonus: 0 Points</p>
+                <p><strong id="total-points">0 Points</strong> of 1000</p>
+            </div>
+            <div class="login-prompt">
+                <a href="#" onclick="promptLogin()">Login</a> to save your progress.
+            </div>
+            <p><strong>You</strong> <span id="user-score">0</span></p>
+        </div>
+
+        <div id="leaderboard-tab" class="tab-content">
+            <h2>Leaderboard</h2>
+            <div id="leaderboard-list"></div>
+        </div>
+
+        <div id="answers-tab" class="tab-content">
+            <div class="answers-section" id="answers-list">
+                <h3>Correct Answers</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "What are the colors of the rainbow?", choices: ["Red, Blue, Green", "Red, Orange, Yellow, Green, Blue, Indigo, Violet", "Pink, Black, White", "None of these"], answer: 1 },
+            { question: "What is the capital of France?", choices: ["Berlin", "Madrid", "Paris", "Rome"], answer: 2 },
+            { question: "Which planet is known as the Red Planet?", choices: ["Earth", "Mars", "Jupiter", "Venus"], answer: 1 },
+            { question: "What is the largest ocean on Earth?", choices: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: 3 },
+            { question: "Who wrote 'Romeo and Juliet'?", choices: ["Charles Dickens", "William Shakespeare", "Mark Twain", "Jane Austen"], answer: 1 },
+            { question: "What is the chemical symbol for water?", choices: ["H2O", "CO2", "O2", "NaCl"], answer: 0 },
+            { question: "Which country is known as the Land of the Rising Sun?", choices: ["China", "Japan", "South Korea", "Thailand"], answer: 1 },
+            { question: "What is the smallest prime number?", choices: ["1", "2", "3", "5"], answer: 1 },
+            { question: "Who painted the Mona Lisa?", choices: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], answer: 2 },
+            { question: "What is the capital of Australia?", choices: ["Sydney", "Melbourne", "Canberra", "Brisbane"], answer: 2 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let correctAnswers = 0;
+        let timeBonus = 0;
+        let timeLeft = 10;
+        let timer;
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+
+        function loadQuestion() {
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("tabs").style.display = "none";
+            const question = questions[currentQuestionIndex];
+            document.getElementById("question-text").innerText = question.question;
+            const choicesContainer = document.getElementById("choices");
+            choicesContainer.innerHTML = "";
+
+            question.choices.forEach((choice, index) => {
+                const choiceDiv = document.createElement("div");
+                choiceDiv.innerText = choice;
+                choiceDiv.classList.add("choice-container");
+                choiceDiv.onclick = () => checkAnswer(index);
+                choicesContainer.appendChild(choiceDiv);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 10;
+            const timerEl = document.getElementById("timer");
+            timerEl.querySelector("span").innerText = `Time left: ${timeLeft}`;
+            timerEl.style.setProperty('--progress', `${(timeLeft / 10) * 100}`);
+            timerEl.classList.remove("low-time");
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerEl.querySelector("span").innerText = `Time left: ${timeLeft}`;
+                timerEl.style.setProperty('--progress', `${(timeLeft / 10) * 100}`);
+
+                if (timeLeft <= 3) {
+                    timerEl.classList.add("low-time");
+                } else {
+                    timerEl.classList.remove("low-time");
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    checkAnswer(-1);
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selectedIndex) {
+            clearInterval(timer);
+            const question = questions[currentQuestionIndex];
+            const choices = document.querySelectorAll(".choice-container");
+            choices.forEach(choice => choice.onclick = null);
+            
+            if (selectedIndex === question.answer) {
+                choices[selectedIndex].classList.add("correct");
+                score += 100;
+                correctAnswers++;
+                timeBonus += timeLeft * 10;
+            } else {
+                if (selectedIndex !== -1) choices[selectedIndex].classList.add("wrong");
+                choices[question.answer].classList.add("correct");
+            }
+
+            document.getElementById("next-btn").style.display = "block";
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById("question-text").innerText = "Quiz Over!";
+            document.getElementById("choices").innerHTML = "";
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("restart-btn").style.display = "block";
+            document.getElementById("timer").style.display = "none";
+            document.getElementById("tabs").style.display = "flex";
+
+            document.getElementById("correct-answers").innerText = `${correctAnswers} Correct`;
+            document.getElementById("points-earned").innerText = `${correctAnswers * 100} Points`;
+            document.getElementById("time-bonus").innerText = `Time Bonus: ${timeBonus} Points`;
+            document.getElementById("total-points").innerText = `${score + timeBonus} Points of `;
+            document.getElementById("user-score").innerText = score + timeBonus;
+            document.getElementById("score-tab").classList.add("active");
+
+            const playerName = prompt("Enter your name:");
+            leaderboard.push({ name: playerName || "Player", score: score + timeBonus });
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+            const leaderboardList = document.getElementById("leaderboard-list");
+            leaderboardList.innerHTML = leaderboard.map((p, i) => `
+                <div class='leaderboard-item'>
+                    <span>${i + 1}. ${p.name}</span>
+                    <span>${p.score} points</span>
+                </div>
+            `).join('');
+
+            const answersList = document.getElementById("answers-list");
+            answersList.innerHTML = "<h3>Correct Answers</h3>";
+            questions.forEach((q, i) => {
+                const answerP = document.createElement("p");
+                answerP.innerHTML = `<strong>Q${i + 1}: ${q.question}</strong><br>Answer: ${q.choices[q.answer]}`;
+                answersList.appendChild(answerP);
+            });
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            correctAnswers = 0;
+            timeBonus = 0;
+            document.getElementById("restart-btn").style.display = "none";
+            document.getElementById("timer").style.display = "block";
+            document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+            document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+            document.querySelector(".tab[onclick=\"showTab('score')\"]").classList.add("active");
+            loadQuestion();
+        }
+
+        function promptLogin() {
+            alert("Login feature coming soon!");
+        }
+
+        function toggleMenu() { 
+            alert("Menu button clicked!"); 
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+            document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+            document.getElementById(`${tabName}-tab`).classList.add("active");
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add("active");
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
